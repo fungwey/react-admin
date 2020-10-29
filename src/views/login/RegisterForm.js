@@ -1,21 +1,47 @@
 import React, { Component, Fragment } from "react";
 // css
 import "./index.scss";
+
 // ANTD
-import { Row, Col, Form, Input, Button } from "antd";
+import { Row, Col, Form, Input, Button, message } from "antd";
 import {
   UserOutlined,
   LockOutlined,
   VerifiedOutlined,
 } from "@ant-design/icons";
+
 // 验证
-import { validate_password } from "../../utils/validate";
+import { validate_password, validate_email } from "../../utils/validate";
+
+// API
+import { Register } from "../../api/account";
+
+// 组件
+import Code from "../../components/code/index";
+
 class RegisterForm extends Component {
   constructor() {
     super();
-    this.state = {};
+    this.state = {
+      username: "",
+      module: "register",
+    };
   }
   onFinish = (values) => {
+    delete values.password1;
+    Register(values)
+      .then((response) => {
+        console.log(response);
+        if (response.data.resCode !== 0) {
+          message.warning(response.data.message, 1);
+        } else {
+          message.success(response.data.message);
+          this.toggleForm();
+        }
+      })
+      .catch((error) => {
+        console.log(error, "error");
+      });
     console.log("Received values of form: ", values);
   };
 
@@ -23,7 +49,20 @@ class RegisterForm extends Component {
     this.props.switchForm("login");
   };
 
+  /**
+   * input 输入处理
+   */
+  inputChange = (e) => {
+    let value = e.target.value;
+    console.log(value);
+    this.setState({
+      username: value,
+    });
+  };
+
   render() {
+    const { username, module } = this.state;
+    const _this = this;
     return (
       <Fragment>
         <div className="form-header">
@@ -44,11 +83,23 @@ class RegisterForm extends Component {
               rules={[
                 {
                   required: true,
-                  message: "Please input your Username!",
+                  message: "邮箱不能为空!",
                 },
+                ({ getFieldValue }) => ({
+                  validator(rule, value) {
+                    if (validate_email(value)) {
+                      _this.setState({
+                        code_button_disabled: false,
+                      });
+                      return Promise.resolve();
+                    }
+                    return Promise.reject("邮箱格式不正确");
+                  },
+                }),
               ]}
             >
               <Input
+                onChange={this.inputChange}
                 prefix={<UserOutlined className="site-form-item-icon" />}
                 placeholder="邮箱"
               />
@@ -59,6 +110,14 @@ class RegisterForm extends Component {
                 {
                   required: true,
                   message: "密码不能为空!",
+                },
+                {
+                  min: 6,
+                  message: "不能少于6位",
+                },
+                {
+                  max: 20,
+                  message: "不能大于20位",
                 },
                 {
                   pattern: validate_password,
@@ -80,6 +139,14 @@ class RegisterForm extends Component {
                   message: "密码不能为空!",
                 },
                 {
+                  min: 6,
+                  message: "不能少于6位",
+                },
+                {
+                  max: 20,
+                  message: "不能大于20位",
+                },
+                {
                   pattern: validate_password,
                   message: "请输入数字和字母",
                 },
@@ -89,14 +156,14 @@ class RegisterForm extends Component {
                       return Promise.resolve();
                     }
 
-                    return Promise.reject("T您输入的两个密码不匹配!");
+                    return Promise.reject("您输入的两个密码不匹配!");
                   },
                 }),
               ]}
             >
               <Input
                 prefix={<LockOutlined className="site-form-item-icon" />}
-                type="passwords"
+                type="password"
                 placeholder="再次输入密码"
               />
             </Form.Item>
@@ -124,9 +191,7 @@ class RegisterForm extends Component {
                 </Form.Item>
               </Col>
               <Col className="gutter-row" span={8}>
-                <Button type="primary" danger block>
-                  获取验证码
-                </Button>
+                <Code username={username} module={module} />
               </Col>
             </Row>
             <Form.Item>

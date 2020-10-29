@@ -1,6 +1,11 @@
 import React, { Component, Fragment } from "react";
+
+// 白名单
+import { withRouter } from "react-router-dom";
+
 // css
 import "./index.scss";
+
 // ANTD
 import { Row, Col, Form, Input, Button, message } from "antd";
 import {
@@ -8,29 +13,56 @@ import {
   LockOutlined,
   VerifiedOutlined,
 } from "@ant-design/icons";
+
 // 验证
 import { validate_password, validate_email } from "../../utils/validate";
 
 // API
 import { Login, GetCode } from "../../api/account";
 
+// 组件
+import Code from "../../components/code/index";
+
+// 方法
+import { SETTOKEN, SETUSERNAME } from "../../utils/cookies";
+
 class LoginForm extends Component {
   constructor() {
     super();
     this.state = {
       username: "",
+      module: "login",
       code_button_disabled: true,
       code_button_loading: false,
       code_button_text: "获取验证码",
+      loading: false,
     };
   }
   onFinish = (values) => {
+    this.setState({
+      loading: true,
+    });
     Login(values)
       .then((response) => {
         console.log(response);
+        if (response.data.resCode !== 0) {
+          message.warning(response.data.message, 1);
+        } else {
+          message.success("登录成功", 1);
+          SETTOKEN(response.data.data.token);
+          SETUSERNAME(response.data.data.username);
+          setTimeout(() => {
+            this.props.history.push("/index");
+          }, 1300);
+        }
       })
       .catch((error) => {
         console.log(error, "error");
+      })
+      .finally(() => {
+        this.setState({
+          loading: false,
+        });
       });
     console.log("Received values of form: ", values);
   };
@@ -79,41 +111,8 @@ class LoginForm extends Component {
       });
   };
 
-  /**
-   * 倒计时
-   */
-  countDowm = () => {
-    let timer = null;
-
-    let sec = 60;
-    this.setState({
-      code_button_loading: false,
-      code_button_disabled: true,
-      code_button_text: `${sec}S`,
-    });
-    timer = setInterval(() => {
-      if (sec <= 0) {
-        clearInterval(timer);
-        this.setState({
-          code_button_loading: false,
-          code_button_disabled: false,
-          code_button_text: `重新获取`,
-        });
-      } else {
-        this.setState({
-          code_button_text: `${--sec}S`,
-        });
-      }
-    }, 1000);
-  };
-
   render() {
-    const {
-      username,
-      code_button_disabled,
-      code_button_loading,
-      code_button_text,
-    } = this.state;
+    const { username, module, loading } = this.state;
     const _this = this;
     return (
       <Fragment>
@@ -208,15 +207,7 @@ class LoginForm extends Component {
                 </Form.Item>
               </Col>
               <Col className="gutter-row" span={8}>
-                <Button
-                  type="danger"
-                  block
-                  disabled={code_button_disabled}
-                  onClick={this.getCode}
-                  loading={code_button_loading}
-                >
-                  {code_button_text}
-                </Button>
+                <Code username={username} module={module} />
               </Col>
             </Row>
             <Form.Item>
@@ -225,6 +216,7 @@ class LoginForm extends Component {
                 htmlType="submit"
                 className="login-form-button"
                 block
+                loading={loading}
               >
                 登录
               </Button>
@@ -236,4 +228,4 @@ class LoginForm extends Component {
   }
 }
 
-export default LoginForm;
+export default withRouter(LoginForm);

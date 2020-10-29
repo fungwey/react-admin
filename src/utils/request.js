@@ -1,5 +1,8 @@
 import axios from "axios";
 
+// 引入公共方法
+import { GETTOKEN, GETUSERNAME } from "./cookies";
+
 // 1. 创建实例
 const service = axios.create({
   baseURL: process.env.REACT_APP_API,
@@ -10,6 +13,8 @@ const service = axios.create({
 service.interceptors.request.use(
   function (config) {
     // 在发送请求之前做些什么
+    config.headers["Token"] = GETTOKEN();
+    config.headers["Username"] = GETUSERNAME();
     return config;
   },
   function (error) {
