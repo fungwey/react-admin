@@ -4,13 +4,22 @@ import React, { Component } from "react";
 import { Form, Input, Button, Radio, InputNumber, message } from "antd";
 
 // api
-import { DepartmentAdd } from "../../api/department";
+import { DepartmentAdd, Detail, DepartmentEdit } from "@api/department";
 
 class Add extends Component {
   constructor() {
     super();
     this.state = {
       loading: false,
+      id: "",
+      formConfig: {
+        url: "departmentAdd",
+        initValue: {
+          number: 0,
+          status: true,
+        },
+        setFieldValue: {},
+      },
       formLayout: {
         labelCol: {
           span: 4,
@@ -22,17 +31,71 @@ class Add extends Component {
     };
   }
 
+  static getDerivedStateFromProps(props, state) {
+    if (props.location.state) {
+      return {
+        id: props.location.state.id,
+      };
+    } else {
+      return null;
+    }
+  }
+
+  componentDidMount() {
+    this.getDetailed();
+  }
+
+  getDetailed = () => {
+    if (!this.props.location.state) {
+      return false;
+    }
+    Detail({ id: this.state.id }).then((response) => {
+      // this.setState({
+      //   formConfig: {
+      //     ...this.state.formConfig,
+      //     setFieldValue: response.data.data,
+      //   },
+      // });
+      this.refs.form.setFieldsValue(response.data.data);
+    });
+  };
+
   onSubmit = (values) => {
     this.setState({
       loading: true,
     });
+    // 确定按钮执行添加和编辑
+    this.state.id ? this.onHandlerEdit(values) : this.onHandlerAdd(values);
+  };
+
+  /** 添加信息 */
+  onHandlerAdd = (values) => {
     DepartmentAdd(values)
       .then((response) => {
         console.log(response);
         message.info(response.data.message, 1);
       })
       .catch((error) => {
-        message.error(error.data.message);
+        console.log(error, "error");
+      })
+      .finally(() => {
+        this.setState({
+          loading: false,
+        });
+        this.refs.form.resetFields();
+      });
+  };
+
+  /** 编辑信息 */
+  onHandlerEdit = (values) => {
+    const requestData = values;
+    requestData.id = this.state.id;
+    DepartmentEdit(requestData)
+      .then((response) => {
+        console.log(response);
+        message.info(response.data.message, 1);
+      })
+      .catch((error) => {
         console.log(error, "error");
       })
       .finally(() => {

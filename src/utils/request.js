@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { message } from "antd";
+
 // 引入公共方法
 import { GETTOKEN, GETUSERNAME } from "./cookies";
 
@@ -26,7 +28,14 @@ service.interceptors.request.use(
 service.interceptors.response.use(
   function (response) {
     // 对响应数据做点什么
-    return response;
+    const data = response.data;
+    if (data.resCode === 0) {
+      return response;
+    } else {
+      // 全局的错误拦截
+      message.info(response.data.message);
+      return Promise.reject(response);
+    }
   },
   function (error) {
     return Promise.reject(error);

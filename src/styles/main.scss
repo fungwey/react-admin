@@ -4,3 +4,18 @@
 body {
   background-color: #3c8dbc !important;
 }
+.inline_button {
+  button + button {
+    margin-left: 10px;
+  }
+}
+
+// text-align
+.text-align {
+  text-align: center;
+}
+
+// color
+.color-red {
+  color: red;
+}
