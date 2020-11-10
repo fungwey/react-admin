@@ -71,7 +71,7 @@
     "workbox-webpack-plugin": "4.3.1"
   },
   "scripts": {
-    "dev": "node scripts/start.js",
+    "serve": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "build:dev": "dotenv -e .env.development react-app-rewired build",
