@@ -23,17 +23,6 @@ export function DepartmentEdit(data) {
 }
 
 /**
- * 部门列表
- */
-export function GetList(data) {
-  return service.request({
-    url: "/department/list/",
-    method: "post",
-    data,
-  });
-}
-
-/**
  * 删除部门
  * @param {*} data
  */

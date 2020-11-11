@@ -1,4 +1,6 @@
 import React from "react";
+import zhCN from "antd/es/locale/zh_CN";
+import { ConfigProvider } from "antd";
 import { Switch, Route, BrowserRouter } from "react-router-dom";
 // 引用组件
 import Login from "./views/login/Index";
@@ -15,12 +17,14 @@ class App extends React.Component {
 
   render() {
     return (
-      <BrowserRouter>
-        <Switch>
-          <Route component={Login} exact path="/"></Route>
-          <PrivateRouter component={Index} path="/index"></PrivateRouter>
-        </Switch>
-      </BrowserRouter>
+      <ConfigProvider locale={zhCN}>
+        <BrowserRouter>
+          <Switch>
+            <Route component={Login} exact path="/"></Route>
+            <PrivateRouter component={Index} path="/index"></PrivateRouter>
+          </Switch>
+        </BrowserRouter>
+      </ConfigProvider>
     );
   }
 }

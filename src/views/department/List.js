@@ -1,9 +1,9 @@
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
 // antd
-import { Form, Input, Button, Table, Switch, message, Modal } from "antd";
+import { Form, Input, Button, Switch, message, Modal } from "antd";
 // api
-import { GetList, Delete, Status } from "@api/department";
+import { Delete, Status } from "@api/department";
 
 // table组件
 import TableComponent from "@c/tableData";
@@ -17,59 +17,65 @@ class DepartmentList extends Component {
       keyWord: "",
       // 表格加载
       loadingTable: false,
-      columns: [
-        {
-          title: "部门名称",
-          dataIndex: "name",
-          key: "name",
-        },
-        {
-          title: "人数",
-          dataIndex: "number",
-          key: "number",
-        },
-        {
-          title: "禁启用",
-          dataIndex: "status",
-          key: "status",
-          render: (text, rowData) => {
-            return (
-              <Switch
-                checkedChildren="启用"
-                unCheckedChildren="禁用"
-                defaultChecked={rowData.status === "1" ? true : false}
-                onChange={() => this.onHandlerSwitch(rowData)}
-                loading={rowData.id === this.state.id}
-              />
-            );
+      // 表头
+      tableConfig: {
+        url: "departmentList",
+        checkbox: true,
+        rowkey: "id",
+        thead: [
+          {
+            title: "部门名称",
+            dataIndex: "name",
+            key: "name",
           },
-        },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          key: "operation",
-          width: 215,
-          render: (text, rowData) => {
-            return (
-              <div className="inline_button">
-                <Button type="primary">
-                  <Link
-                    to={{
-                      pathname: "/index/department/add",
-                      state: { id: rowData.id },
-                    }}
-                  >
-                    编辑
-                  </Link>
-                </Button>
-                <Button onClick={() => this.onHandlerDelete(rowData.id)}>
-                  删除
-                </Button>
-              </div>
-            );
+          {
+            title: "人数",
+            dataIndex: "number",
+            key: "number",
           },
-        },
-      ],
+          {
+            title: "禁启用",
+            dataIndex: "status",
+            key: "status",
+            render: (text, rowData) => {
+              return (
+                <Switch
+                  checkedChildren="启用"
+                  unCheckedChildren="禁用"
+                  defaultChecked={rowData.status === "1" ? true : false}
+                  onChange={() => this.onHandlerSwitch(rowData)}
+                  loading={rowData.id === this.state.id}
+                />
+              );
+            },
+          },
+          {
+            title: "操作",
+            dataIndex: "operation",
+            key: "operation",
+            width: 215,
+            render: (text, rowData) => {
+              return (
+                <div className="inline_button">
+                  <Button type="primary">
+                    <Link
+                      to={{
+                        pathname: "/index/department/add",
+                        state: { id: rowData.id },
+                      }}
+                    >
+                      编辑
+                    </Link>
+                  </Button>
+                  <Button onClick={() => this.onHandlerDelete(rowData.id)}>
+                    删除
+                  </Button>
+                </div>
+              );
+            },
+          },
+        ],
+      },
       data: [],
       selectedRowKeys: [], // 复选框数据
       // 警告框
@@ -78,36 +84,6 @@ class DepartmentList extends Component {
       // 弹窗确定按钮
       confirmLoading: false,
     };
-  }
-  componentDidMount() {
-    this.loadData();
-  }
-  loadData() {
-    this.setState({
-      loadingTable: true,
-    });
-    const requestData = {
-      pageNumber: this.state.pageNumber,
-      pageSize: this.state.pageSize,
-    };
-    if (this.state.keyWord) {
-      requestData.name = this.state.keyWord;
-    }
-    GetList(requestData)
-      .then((data) => {
-        console.log(data);
-        const responseData = data.data.data;
-        if (responseData) {
-          this.setState({
-            data: responseData.data,
-          });
-        }
-      })
-      .finally(() => {
-        this.setState({
-          loadingTable: false,
-        });
-      });
   }
 
   /** 搜索 */
@@ -120,7 +96,6 @@ class DepartmentList extends Component {
       pageNumber: 1,
       pageSize: 10,
     });
-    this.loadData();
   };
 
   /** 删除 */
@@ -152,7 +127,6 @@ class DepartmentList extends Component {
         //   id: "",
         //   confirmLoading: false,
         // });
-        this.loadData();
       })
       .finally(() => {
         this.setState({
@@ -180,7 +154,6 @@ class DepartmentList extends Component {
         confirmLoading: false,
         selectedRowKeys: [],
       });
-      this.loadData();
     });
   };
   // 弹窗取消
@@ -191,12 +164,6 @@ class DepartmentList extends Component {
   };
 
   render() {
-    const { columns, data, selectedRowKeys, loadingTable } = this.state;
-    const rowSelection = {
-      selectedRowKeys,
-      onChange: this.onSelectChange,
-    };
-    const hasSelected = selectedRowKeys.length > 0;
     return (
       <Fragment>
         <Form name="horizontal_login" layout="inline" onFinish={this.onFinish}>
@@ -208,28 +175,9 @@ class DepartmentList extends Component {
               搜索
             </Button>
           </Form.Item>
-          <Button
-            onClick={() => {
-              this.onHandlerDelete();
-            }}
-          >
-            批量删除
-          </Button>
         </Form>
-        <div style={{ marginBottom: 16, marginTop: 16 }}>
-          <span style={{ marginLeft: 8 }}>
-            {hasSelected ? `选中 ${selectedRowKeys.length} 个` : ""}
-          </span>
-        </div>
-        <TableComponent></TableComponent>
-        <Table
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={data}
-          rowKey="id"
-          loading={loadingTable}
-          pagination={false}
-        />
+
+        <TableComponent batchButton={true} config={this.state.tableConfig} />
         <Modal
           title="提示"
           visible={this.state.visible}
