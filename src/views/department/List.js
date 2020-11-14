@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
 // antd
-import { Form, Input, Button, Switch, message } from "antd";
+import { Button, Switch, message } from "antd";
 // api
 import { Status } from "@api/department";
 
@@ -11,10 +11,10 @@ class DepartmentList extends Component {
   constructor() {
     super();
     this.state = {
+      id: "",
       // 请求参数
       pageNumber: 1,
       pageSize: 10,
-      keyWord: "",
       // 表格加载
       loadingTable: false,
       // 表头
@@ -28,6 +28,9 @@ class DepartmentList extends Component {
             title: "部门名称",
             dataIndex: "name",
             key: "name",
+            render: (name, rowData) => {
+              return <a href={rowData.id}>{name}</a>;
+            },
           },
           {
             title: "人数",
@@ -38,12 +41,12 @@ class DepartmentList extends Component {
             title: "禁启用",
             dataIndex: "status",
             key: "status",
-            render: (text, rowData) => {
+            render: (status, rowData) => {
               return (
                 <Switch
                   checkedChildren="启用"
                   unCheckedChildren="禁用"
-                  defaultChecked={rowData.status === "1" ? true : false}
+                  defaultChecked={status === "1" ? true : false}
                   onChange={() => this.onHandlerSwitch(rowData)}
                   loading={rowData.id === this.state.id}
                 />
@@ -68,31 +71,25 @@ class DepartmentList extends Component {
                       编辑
                     </Link>
                   </Button>
-                  <Button onClick={() => this.onHandlerDelete(rowData.id)}>
-                    删除
-                  </Button>
+                  <Button onClick={() => this.delete(rowData.id)}>删除</Button>
+                  {/* 
+                    在父组件获取子组件的实例
+                    1. 在子组件调用父组件方法，并把子组件实例传回给父组件。（已经存储了子组件的实例）
+                    2. 通过实例调动子组件的方法。
+                  */}
                 </div>
               );
             },
           },
         ],
       },
-      data: [],
-      selectedRowKeys: [], // 复选框数据
-      id: "",
     };
   }
 
-  /** 搜索 */
-  onFinish = (value) => {
-    if (this.state.loadingTable) {
-      return false;
-    }
-    this.setState({
-      keyWord: value.name,
-      pageNumber: 1,
-      pageSize: 10,
-    });
+  // 获取子组件实例
+  getChildRef = (ref) => {
+    console.log(ref);
+    this.tableComponent = ref; // 存储子组件
   };
 
   /** 禁启用 */
@@ -117,21 +114,19 @@ class DepartmentList extends Component {
       });
   }
 
+  /** 删除 */
+  delete = (id) => {
+    this.tableComponent.onHandlerDelete(id);
+  };
+
   render() {
     return (
       <Fragment>
-        <Form name="horizontal_login" layout="inline" onFinish={this.onFinish}>
-          <Form.Item label="部门名称" name="name">
-            <Input placeholder="部门名称" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              搜索
-            </Button>
-          </Form.Item>
-        </Form>
-
-        <TableComponent batchButton={true} config={this.state.tableConfig} />
+        <TableComponent
+          onRef={this.getChildRef}
+          batchButton={true}
+          config={this.state.tableConfig}
+        />
       </Fragment>
     );
   }

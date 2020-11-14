@@ -3,11 +3,14 @@ import React, { Component, Fragment } from "react";
 import PropTypes from "prop-types";
 
 // antd
-import { Table, Pagination, Row, Col, Button, Modal, message } from "antd";
+import { Form, Input, Button, Modal, message } from "antd";
 // api
 import { TableList, TableDelete } from "@api/common";
 // url
 import requestUrl from "@api/requestUrl";
+
+// Table basis component
+import TableBasis from "./Table";
 
 class TableComponent extends Component {
   constructor(props) {
@@ -33,6 +36,7 @@ class TableComponent extends Component {
   }
   componentDidMount() {
     this.loadData();
+    this.props.onRef(this);
   }
 
   /** 获取列表数据 */
@@ -46,7 +50,7 @@ class TableComponent extends Component {
       },
     };
     if (keyWord) {
-      requestData.name = keyWord;
+      requestData.data.name = keyWord;
     }
     this.setState({
       loadingTable: true,
@@ -144,48 +148,60 @@ class TableComponent extends Component {
     });
   }
 
+  /** 搜索 */
+  onFinish = (value) => {
+    if (this.state.loadingTable) {
+      return false;
+    }
+    this.setState(
+      {
+        keyWord: value.name,
+        pageNumber: 1,
+        pageSize: 10,
+      },
+      () => {
+        this.loadData();
+      }
+    );
+  };
+
   render() {
-    const { data, loadingTable } = this.state;
+    const { data, loadingTable, total } = this.state;
     const { thead, checkbox, rowkey } = this.props.config;
     const rowSelection = {
       onChange: this.onSelectChange,
     };
     return (
       <Fragment>
-        {/* table 组件 */}
-        <Table
-          columns={thead}
-          dataSource={data}
-          rowKey={rowkey || "id"}
-          rowSelection={checkbox ? rowSelection : null}
-          loading={loadingTable}
-          pagination={false}
-        />
-        <Row>
-          <Col span={2}>
-            {this.props.batchButton && (
-              <Button
-                onClick={() => {
-                  this.onHandlerDelete();
-                }}
-              >
-                批量删除
-              </Button>
-            )}
-          </Col>
-          <Col span={22}>
-            <Pagination
-              defaultCurrent={1}
-              onChange={this.onChangeCurrentPage}
-              onShowSizeChange={this.onChangeSizePage}
-              className="pull-right"
-              total={this.state.total}
-              showSizeChanger
-              showQuickJumper
-              showTotal={(total) => `Total ${total} items`}
-            />
-          </Col>
-        </Row>
+        {/* 筛选 */}
+        <Form name="horizontal_login" layout="inline" onFinish={this.onFinish}>
+          <Form.Item label="部门名称" name="name">
+            <Input placeholder="部门名称" />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              搜索
+            </Button>
+          </Form.Item>
+        </Form>
+        {/* table UI 组件 */}
+        <div className="table-wrap">
+          <TableBasis
+            columns={thead}
+            dataSource={data}
+            total={total}
+            changePageCurrent={this.onChangeCurrentPage}
+            ChangPageSize={this.onChangeSizePage}
+            batchButton={true}
+            handlerDelete={() => {
+              this.onHandlerDelete();
+            }}
+            rowKey={rowkey || "id"}
+            rowSelection={checkbox ? rowSelection : null}
+            loading={loadingTable}
+          />
+        </div>
+
         {/* 确认弹窗 */}
         <Modal
           title="提示"

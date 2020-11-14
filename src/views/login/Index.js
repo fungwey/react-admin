@@ -1,9 +1,12 @@
 import React, { Component } from "react";
+import { Route, Redirect } from "react-router-dom";
 // css
 import "./index.scss";
 // 组件
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+// 方法
+import { GETTOKEN } from "../../utils/cookies";
 
 class login extends Component {
   constructor() {
@@ -21,16 +24,25 @@ class login extends Component {
   };
 
   render() {
+    console.log(GETTOKEN());
     return (
-      <div className="form-wrap">
-        <div>
-          {this.state.formType === "login" ? (
-            <LoginForm switchForm={this.switchForm}></LoginForm>
+      <Route
+        render={(routeProps) =>
+          GETTOKEN() ? (
+            <Redirect to="/index" />
           ) : (
-            <RegisterForm switchForm={this.switchForm}></RegisterForm>
-          )}
-        </div>
-      </div>
+            <div className="form-wrap">
+              <div>
+                {this.state.formType === "login" ? (
+                  <LoginForm switchForm={this.switchForm}></LoginForm>
+                ) : (
+                  <RegisterForm switchForm={this.switchForm}></RegisterForm>
+                )}
+              </div>
+            </div>
+          )
+        }
+      />
     );
   }
 }
