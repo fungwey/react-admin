@@ -9,3 +9,15 @@ export function TableList(params) {
     data: params.data,
   });
 }
+
+/**
+ * 删除
+ * @param {*} data
+ */
+export function TableDelete(params) {
+  return service.request({
+    url: params.url,
+    method: params.method || "post",
+    data: params.data,
+  });
+}

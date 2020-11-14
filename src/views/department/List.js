@@ -1,9 +1,9 @@
 import React, { Component, Fragment } from "react";
 import { Link } from "react-router-dom";
 // antd
-import { Form, Input, Button, Switch, message, Modal } from "antd";
+import { Form, Input, Button, Switch, message } from "antd";
 // api
-import { Delete, Status } from "@api/department";
+import { Status } from "@api/department";
 
 // table组件
 import TableComponent from "@c/tableData";
@@ -20,6 +20,7 @@ class DepartmentList extends Component {
       // 表头
       tableConfig: {
         url: "departmentList",
+        delurl: "departmentDelete",
         checkbox: true,
         rowkey: "id",
         thead: [
@@ -78,11 +79,7 @@ class DepartmentList extends Component {
       },
       data: [],
       selectedRowKeys: [], // 复选框数据
-      // 警告框
-      visible: false,
       id: "",
-      // 弹窗确定按钮
-      confirmLoading: false,
     };
   }
 
@@ -97,21 +94,6 @@ class DepartmentList extends Component {
       pageSize: 10,
     });
   };
-
-  /** 删除 */
-  onHandlerDelete(id) {
-    if (!id) {
-      if (this.state.selectedRowKeys.length === 0) {
-        return false;
-      }
-      id = this.state.selectedRowKeys.join(",");
-    }
-
-    this.setState({
-      visible: true,
-      id,
-    });
-  }
 
   /** 禁启用 */
   onHandlerSwitch({ id, status }) {
@@ -135,34 +117,6 @@ class DepartmentList extends Component {
       });
   }
 
-  // 复选框
-  onSelectChange = (selectedRowKeys) => {
-    console.log("selectedRowKeys changed: ", selectedRowKeys);
-    this.setState({ selectedRowKeys });
-  };
-
-  // 弹窗确定
-  modalThen = () => {
-    this.setState({
-      confirmLoading: true,
-    });
-    Delete({ id: this.state.id }).then((data) => {
-      message.info(data.data.message);
-      this.setState({
-        visible: false,
-        id: "",
-        confirmLoading: false,
-        selectedRowKeys: [],
-      });
-    });
-  };
-  // 弹窗取消
-  hideModal = () => {
-    this.setState({
-      visible: false,
-    });
-  };
-
   render() {
     return (
       <Fragment>
@@ -178,20 +132,6 @@ class DepartmentList extends Component {
         </Form>
 
         <TableComponent batchButton={true} config={this.state.tableConfig} />
-        <Modal
-          title="提示"
-          visible={this.state.visible}
-          onOk={this.modalThen}
-          onCancel={this.hideModal}
-          confirmLoading={this.state.confirmLoading}
-          okText="确认"
-          cancelText="取消"
-        >
-          <p>
-            确定删除测信息？{" "}
-            <span className="text-align color-red">删除后无法恢复。</span>
-          </p>
-        </Modal>
       </Fragment>
     );
   }

@@ -3,9 +3,9 @@ import React, { Component, Fragment } from "react";
 import PropTypes from "prop-types";
 
 // antd
-import { Table, Pagination, Row, Col, Button } from "antd";
+import { Table, Pagination, Row, Col, Button, Modal, message } from "antd";
 // api
-import { TableList } from "@api/common";
+import { TableList, TableDelete } from "@api/common";
 // url
 import requestUrl from "@api/requestUrl";
 
@@ -22,9 +22,13 @@ class TableComponent extends Component {
       data: [],
       url: "",
       // 复选框数据
-      selectedRowKeys: [],
+      checkboxValue: [],
       // 页码
       total: 0,
+      // 确认弹窗
+      modalVisible: false,
+      modalConfirmLoading: false,
+      id: "",
     };
   }
   componentDidMount() {
@@ -65,9 +69,9 @@ class TableComponent extends Component {
   }
 
   /** 复选框 */
-  onSelectChange = (selectedRowKeys) => {
-    console.log("selectedRowKeys changed: ", selectedRowKeys);
-    this.setState({ selectedRowKeys });
+  onSelectChange = (checkboxValue) => {
+    console.log("checkboxValue changed: ", checkboxValue);
+    this.setState({ checkboxValue });
   };
 
   /** 当前页码 */
@@ -82,6 +86,64 @@ class TableComponent extends Component {
     );
   };
 
+  /** pageSize 变化的回调 */
+  onChangeSizePage = (value, num) => {
+    this.setState(
+      {
+        pageNumber: value,
+        pageSize: num,
+      },
+      () => {
+        this.loadData();
+      }
+    );
+  };
+
+  /** 弹窗确定 */
+  modalThen = () => {
+    this.setState({
+      confirmLoading: true,
+    });
+    const requestData = {
+      url: requestUrl[this.props.config.delurl],
+      data: {
+        id: this.state.id,
+      },
+    };
+    TableDelete(requestData).then((data) => {
+      message.info(data.data.message);
+      this.setState({
+        modalVisible: false,
+        id: "",
+        confirmLoading: false,
+        checkboxValue: [],
+      });
+      this.loadData();
+    });
+  };
+  /** 弹窗取消 */
+  hideModal = () => {
+    this.setState({
+      modalVisible: false,
+    });
+  };
+
+  /** 批量删除 */
+  onHandlerDelete(id) {
+    if (!id) {
+      if (this.state.checkboxValue.length === 0) {
+        message.info("请选择需要删除的数据");
+        return false;
+      }
+      id = this.state.checkboxValue.join(",");
+    }
+
+    this.setState({
+      modalVisible: true,
+      id,
+    });
+  }
+
   render() {
     const { data, loadingTable } = this.state;
     const { thead, checkbox, rowkey } = this.props.config;
@@ -90,6 +152,7 @@ class TableComponent extends Component {
     };
     return (
       <Fragment>
+        {/* table 组件 */}
         <Table
           columns={thead}
           dataSource={data}
@@ -112,10 +175,9 @@ class TableComponent extends Component {
           </Col>
           <Col span={22}>
             <Pagination
-              current={1}
               defaultCurrent={1}
-              hideOnSinglePage={true}
               onChange={this.onChangeCurrentPage}
+              onShowSizeChange={this.onChangeSizePage}
               className="pull-right"
               total={this.state.total}
               showSizeChanger
@@ -124,6 +186,21 @@ class TableComponent extends Component {
             />
           </Col>
         </Row>
+        {/* 确认弹窗 */}
+        <Modal
+          title="提示"
+          visible={this.state.modalVisible}
+          onOk={this.modalThen}
+          onCancel={this.hideModal}
+          confirmLoading={this.state.modalConfirmLoading}
+          okText="确认"
+          cancelText="取消"
+        >
+          <p>
+            确定删除测信息？{" "}
+            <span className="text-align color-red">删除后无法恢复。</span>
+          </p>
+        </Modal>
       </Fragment>
     );
   }

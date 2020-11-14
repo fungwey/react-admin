@@ -23,18 +23,6 @@ export function DepartmentEdit(data) {
 }
 
 /**
- * 删除部门
- * @param {*} data
- */
-export function Delete(data) {
-  return service.request({
-    url: "/department/delete/",
-    method: "post",
-    data,
-  });
-}
-
-/**
  * 禁启用
  * @param {*} data
  */
