@@ -23,8 +23,12 @@ import { Login, GetCode } from "../../api/account";
 // 组件
 import Code from "../../components/code/index";
 
-// 方法
-import { SETTOKEN, SETUSERNAME } from "../../utils/cookies";
+// connect
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+
+// action
+import { setTokenAction, setUsernameAction } from "@/store/action/App";
 
 class LoginForm extends Component {
   constructor() {
@@ -49,8 +53,8 @@ class LoginForm extends Component {
           message.warning(response.data.message, 1);
         } else {
           message.success("登录成功", 1);
-          SETTOKEN(response.data.data.token);
-          SETUSERNAME(response.data.data.username);
+          this.props.action.setToken(response.data.data.token);
+          this.props.action.setUsername(response.data.data.username);
           setTimeout(() => {
             this.props.history.push("/index");
           }, 1300);
@@ -228,4 +232,15 @@ class LoginForm extends Component {
   }
 }
 
-export default withRouter(LoginForm);
+const mapDispatchToPRops = (dispatch) => {
+  return {
+    action: bindActionCreators(
+      {
+        setToken: setTokenAction,
+        setUsername: setUsernameAction,
+      },
+      dispatch
+    ),
+  };
+};
+export default connect(null, mapDispatchToPRops)(withRouter(LoginForm));
