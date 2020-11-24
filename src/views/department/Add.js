@@ -1,10 +1,13 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 
 // antd
-import { Form, Input, Button, Radio, InputNumber, message } from "antd";
+import { message } from "antd";
 
 // api
-import { DepartmentAdd, Detail, DepartmentEdit } from "@api/department";
+import { Detail, DepartmentEdit } from "@api/department";
+
+// 组件
+import FormCom from "@c/form/index";
 
 class Add extends Component {
   constructor() {
@@ -14,10 +17,7 @@ class Add extends Component {
       id: "",
       formConfig: {
         url: "departmentAdd",
-        initValue: {
-          number: 0,
-          status: true,
-        },
+        initValue: { status: false, number: 1 },
         setFieldValue: {},
       },
       formLayout: {
@@ -28,6 +28,76 @@ class Add extends Component {
           span: 18,
         },
       },
+      formItem: [
+        {
+          type: "Input",
+          label: "部门名称",
+          name: "name",
+          required: true,
+          message: `部门名称不能为空啊啊啊!`,
+          placeholder: "请输入部门名称",
+          style: {
+            width: "300px",
+          },
+        },
+        {
+          type: "InputNumber",
+          label: "人员数量",
+          name: "number",
+          required: true,
+          message: `人员数量不能为空!`,
+          placeholder: "请输入人员数量",
+          style: {
+            width: "150px",
+          },
+          min: 1,
+          max: 100,
+        },
+        // {
+        //   type: "Select",
+        //   label: "选择部门",
+        //   name: "numbera",
+        //   required: true,
+        //   placeholder: "请输入选择部门",
+        //   options: [
+        //     {
+        //       label: "研发部",
+        //       value: "a",
+        //     },
+        //     {
+        //       label: "技术部",
+        //       value: "b",
+        //     },
+        //   ],
+        //   style: {
+        //     width: "150px",
+        //   },
+        // },
+        {
+          type: "Radio",
+          label: "禁启用",
+          name: "status",
+          required: true,
+          options: [
+            {
+              label: "禁用",
+              value: false,
+            },
+            {
+              label: "启用",
+              value: true,
+            },
+          ],
+        },
+        {
+          type: "Input",
+          label: "介绍",
+          name: "content",
+          style: {
+            width: "300px",
+          },
+        },
+      ],
     };
   }
 
@@ -50,40 +120,14 @@ class Add extends Component {
       return false;
     }
     Detail({ id: this.state.id }).then((response) => {
-      // this.setState({
-      //   formConfig: {
-      //     ...this.state.formConfig,
-      //     setFieldValue: response.data.data,
-      //   },
-      // });
-      this.refs.form.setFieldsValue(response.data.data);
-    });
-  };
-
-  onSubmit = (values) => {
-    this.setState({
-      loading: true,
-    });
-    // 确定按钮执行添加和编辑
-    this.state.id ? this.onHandlerEdit(values) : this.onHandlerAdd(values);
-  };
-
-  /** 添加信息 */
-  onHandlerAdd = (values) => {
-    DepartmentAdd(values)
-      .then((response) => {
-        console.log(response);
-        message.info(response.data.message, 1);
-      })
-      .catch((error) => {
-        console.log(error, "error");
-      })
-      .finally(() => {
-        this.setState({
-          loading: false,
-        });
-        this.refs.form.resetFields();
+      response.data.data.id = this.state.id;
+      this.setState({
+        formConfig: {
+          ...this.state.formConfig,
+          setFieldValue: response.data.data,
+        },
       });
+    });
   };
 
   /** 编辑信息 */
@@ -92,7 +136,6 @@ class Add extends Component {
     requestData.id = this.state.id;
     DepartmentEdit(requestData)
       .then((response) => {
-        console.log(response);
         message.info(response.data.message, 1);
       })
       .catch((error) => {
@@ -108,45 +151,14 @@ class Add extends Component {
 
   render() {
     return (
-      <Form
-        ref="form"
-        {...this.state.formLayout}
-        initialValues={{ status: true, number: 10 }}
-        onFinish={this.onSubmit}
-      >
-        <Form.Item
-          label="部门名称"
-          name="name"
-          rules={[{ required: true, message: "请输入部门名称!" }]}
-        >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label="人员数量"
-          name="number"
-          rules={[{ required: true, message: "请输入人员数量!" }]}
-        >
-          <InputNumber min={1} max={200} />
-        </Form.Item>
-        <Form.Item name="status" label="禁启用">
-          <Radio.Group>
-            <Radio value={false}>禁用</Radio>
-            <Radio value={true}>启用</Radio>
-          </Radio.Group>
-        </Form.Item>
-        <Form.Item label="描述" name="content">
-          <Input.TextArea />
-        </Form.Item>
-        <Form.Item>
-          <Button
-            loading={this.state.loading}
-            htmlType="subject"
-            type="primary"
-          >
-            确定
-          </Button>
-        </Form.Item>
-      </Form>
+      <Fragment>
+        <FormCom
+          ref="form"
+          formItem={this.state.formItem}
+          formLayout={this.state.formLayout}
+          formConfig={this.state.formConfig}
+        />
+      </Fragment>
     );
   }
 }

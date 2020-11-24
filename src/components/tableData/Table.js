@@ -2,42 +2,24 @@ import React, { Component, Fragment } from "react";
 // propTypes
 import PropTypes from "prop-types";
 
+import { connect } from "react-redux";
+
 // antd
-import { Table, Row, Col, Button, Pagination } from "antd";
+import { Table } from "antd";
 
 class TableBasis extends Component {
   render() {
-    const {
-      columns,
-      dataSource,
-      total,
-      changePageCurrent,
-      ChangPageSize,
-      batchButton,
-      handlerDelete,
-      rowSelection,
-      rowKey,
-      loading,
-    } = this.props;
+    const { thead, rowkey } = this.props.config;
     return (
       <Fragment>
-        <Table
-          columns={columns}
-          dataSource={dataSource}
-          bordered
-          pagination={false}
-          rowSelection={rowSelection}
-          rowKey={rowKey}
-          loading={loading}
-        />
         <div className="spacing-30"></div>
-        <Row>
+        <Table columns={thead} dataSource={this.props.list} rowKey={rowkey} />
+        {/* <Row>
           <Col span={2}>
             {batchButton && <Button onClick={handlerDelete}>批量删除</Button>}
           </Col>
           <Col span={22}>
             <Pagination
-              defaultCurrent={1}
               onChange={changePageCurrent}
               onShowSizeChange={ChangPageSize}
               className="pull-right"
@@ -47,31 +29,28 @@ class TableBasis extends Component {
               showTotal={(total) => `Total ${total} items`}
             />
           </Col>
-        </Row>
+        </Row> */}
       </Fragment>
     );
   }
 }
 // 校验数据类型
 TableBasis.propTypes = {
-  columns: PropTypes.array,
-  dataSource: PropTypes.array,
-  total: PropTypes.number,
-  changePageCurrent: PropTypes.func,
-  ChangPageSize: PropTypes.func,
-  batchButton: PropTypes.bool,
-  handlerDelete: PropTypes.func,
-  rowSelection: PropTypes.object,
+  config: PropTypes.object,
   rowKey: PropTypes.string,
-  loading: PropTypes.bool,
 };
 // 默认值
 TableBasis.defaultProps = {
-  columns: [],
-  dataSource: [],
-  total: 0,
-  batchButton: true,
+  config: {},
   rowKey: "id",
 };
 
-export default TableBasis;
+// 把store中的数据映射到这个组件变成props
+const mapStateToProps = (state) => {
+  // mapState 会将数据映射成this.props
+  console.log("state", state);
+  return {
+    list: state.department.departmentList,
+  };
+};
+export default connect(mapStateToProps, null)(TableBasis);

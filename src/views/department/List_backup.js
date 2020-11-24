@@ -6,8 +6,12 @@ import { Button, Switch, message } from "antd";
 import { Status } from "@api/department";
 
 // table组件
-import TableComponent from "@c/tableData/Table";
-import FormSearch from "@c/formSearch/index";
+import TableComponent from "@c/tableData";
+
+// store
+import Store from "@/store/Index";
+// action
+import { addStatus, updateStatus } from "@/store/action/Config";
 
 class DepartmentList extends Component {
   constructor() {
@@ -19,25 +23,6 @@ class DepartmentList extends Component {
       pageSize: 10,
       // 表格加载
       loadingTable: false,
-      // 筛选
-      formItem: [
-        {
-          type: "Input",
-          label: "部门名称",
-          name: "name",
-          placeholder: "请输入部门名称",
-        },
-        {
-          type: "Select",
-          label: "禁启用",
-          name: "status",
-          optionsKey: "status",
-          placeholder: "请选择",
-          style: {
-            width: "100px",
-          },
-        },
-      ],
       // 表头
       tableConfig: {
         url: "departmentList",
@@ -103,23 +88,40 @@ class DepartmentList extends Component {
             },
           },
         ],
+        formItem: [
+          {
+            type: "Input",
+            label: "部门名称",
+            name: "name",
+            placeholder: "请输入部门名称",
+          },
+          {
+            type: "Select",
+            label: "禁启用",
+            name: "status",
+            optionsKey: "status",
+            placeholder: "请选择",
+            style: {
+              width: "100px",
+            },
+          },
+        ],
       },
     };
   }
 
   /** 生命周期挂载完成 */
   componentDidMount() {
-    // 监听变化
-    // Store.subscribe(() => {
-    //   console.log("store发生改变", Store.getState());
-    // });
-    // Store.dispatch(
-    //   addStatus({
-    //     label: "所有",
-    //     value: "all",
-    //   })
-    // );
-    // Store.dispatch(updateStatus("aaaa", false));
+    Store.subscribe(() => {
+      console.log("store发生改变", Store.getState());
+    });
+    Store.dispatch(
+      addStatus({
+        label: "所有",
+        value: "all",
+      })
+    );
+    Store.dispatch(updateStatus("aaaa", false));
   }
 
   // 获取子组件实例
@@ -157,8 +159,11 @@ class DepartmentList extends Component {
   render() {
     return (
       <Fragment>
-        <FormSearch formItem={this.state.formItem} />
-        <TableComponent config={this.state.tableConfig} />
+        <TableComponent
+          onRef={this.getChildRef}
+          batchButton={true}
+          config={this.state.tableConfig}
+        />
       </Fragment>
     );
   }
