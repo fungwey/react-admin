@@ -25,23 +25,20 @@ class DepartmentList extends Component {
       loadingTable: false,
       // 表头
       tableConfig: {
-        url: "departmentList",
-        delurl: "departmentDelete",
+        url: "jobList",
+        delurl: "jobDelete",
         checkbox: true,
         rowkey: "id",
         thead: [
           {
+            title: "职位名称",
+            dataIndex: "jobName",
+            key: "jobName",
+          },
+          {
             title: "部门名称",
             dataIndex: "name",
             key: "name",
-            render: (name, rowData) => {
-              return <a href={rowData.id}>{name}</a>;
-            },
-          },
-          {
-            title: "人数",
-            dataIndex: "number",
-            key: "number",
           },
           {
             title: "禁启用",
@@ -91,9 +88,9 @@ class DepartmentList extends Component {
         formItem: [
           {
             type: "Input",
-            label: "部门名称",
+            label: "职位名称",
             name: "name",
-            placeholder: "请输入部门名称",
+            placeholder: "请输入职位名称",
           },
           {
             type: "Select",

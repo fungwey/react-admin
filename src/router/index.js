@@ -41,17 +41,17 @@ const router = [
   {
     title: "职位管理",
     icon: "edit",
-    key: "/home/entry",
+    key: "/index/job",
     children: [
       {
         title: "职位列表",
         icon: "",
-        key: "/home/entry/form/basic-form",
+        key: "/index/job/list",
       },
       {
         title: "添加职位",
         icon: "",
-        key: "/home/entry/form/step-form",
+        key: "/index/job/add",
       },
     ],
   },

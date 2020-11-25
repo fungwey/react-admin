@@ -10,7 +10,6 @@ const app = {
 
 // Reducer
 const configReducer = function (state = app, action) {
-  console.log("app reducer", action);
   switch (action.type) {
     case setTokenKey:
       return {

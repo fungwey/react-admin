@@ -184,16 +184,6 @@ class TableComponent extends Component {
     return (
       <Fragment>
         {/* 筛选 */}
-        {/* <Form name="horizontal_login" layout="inline" onFinish={this.onFinish}>
-          <Form.Item label="部门名称" name="name">
-            <Input placeholder="部门名称" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              搜索
-            </Button>
-          </Form.Item>
-        </Form> */}
         <FormSearch formItem={formItem} search={this.search} />
         {/* table UI 组件 */}
         <div className="table-wrap">
