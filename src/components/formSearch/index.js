@@ -160,7 +160,7 @@ class FormSearch extends Component {
 
     // 循环处理
     const formList = [];
-    formItem.map((item) => {
+    formItem.forEach((item) => {
       if (item.type === "Input") {
         formList.push(this.inputElem(item));
       }
@@ -174,7 +174,6 @@ class FormSearch extends Component {
       if (item.type === "Radio") {
         formList.push(this.radioElem(item));
       }
-      return item;
     });
     return formList;
   };

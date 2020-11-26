@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 // antd
 import { Button, Switch, message } from "antd";
 // api
-import { Status } from "@api/department";
+import { Status } from "@api/job";
 
 // table组件
 import TableComponent from "@c/tableData";
@@ -28,7 +28,7 @@ class DepartmentList extends Component {
         url: "jobList",
         delurl: "jobDelete",
         checkbox: true,
-        rowkey: "id",
+        rowkey: "jobId",
         thead: [
           {
             title: "职位名称",
@@ -49,9 +49,9 @@ class DepartmentList extends Component {
                 <Switch
                   checkedChildren="启用"
                   unCheckedChildren="禁用"
-                  defaultChecked={status === "1" ? true : false}
+                  defaultChecked={status}
                   onChange={() => this.onHandlerSwitch(rowData)}
-                  loading={rowData.id === this.state.id}
+                  loading={rowData.jobId === this.state.jobId}
                 />
               );
             },
@@ -67,14 +67,16 @@ class DepartmentList extends Component {
                   <Button type="primary">
                     <Link
                       to={{
-                        pathname: "/index/department/add",
-                        state: { id: rowData.id },
+                        pathname: "/index/job/add",
+                        state: { id: rowData.jobId },
                       }}
                     >
                       编辑
                     </Link>
                   </Button>
-                  <Button onClick={() => this.delete(rowData.id)}>删除</Button>
+                  <Button onClick={() => this.delete(rowData.jobId)}>
+                    删除
+                  </Button>
                   {/* 
                     在父组件获取子组件的实例
                     1. 在子组件调用父组件方法，并把子组件实例传回给父组件。（已经存储了子组件的实例）
@@ -127,17 +129,17 @@ class DepartmentList extends Component {
   };
 
   /** 禁启用 */
-  onHandlerSwitch({ id, status }) {
-    if (!id) {
+  onHandlerSwitch({ jobId, status }) {
+    if (!jobId) {
       return false;
     }
-    this.setState({ id: id });
-    Status({ id: id, status: status === "1" ? false : true })
+    this.setState({ id: jobId });
+    Status({ id: jobId, status: !status })
       .then((data) => {
         message.info(data.data.message);
         // this.setState({
         //   visible: false,
-        //   id: "",
+        //   jobId: "",
         //   confirmLoading: false,
         // });
       })
@@ -149,8 +151,8 @@ class DepartmentList extends Component {
   }
 
   /** 删除 */
-  delete = (id) => {
-    this.tableComponent.onHandlerDelete(id);
+  delete = (jobId) => {
+    this.tableComponent.onHandlerDelete(jobId);
   };
 
   render() {

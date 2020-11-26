@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 // propTypes
 import PropTypes from "prop-types";
-import { Form, Input, Button, Select, InputNumber, Radio, message } from "antd";
-// url
-import requestUrl from "@api/requestUrl";
 //  API
 import { requestData } from "@api/common";
-
-const { Option } = Select;
+// url
+import requestUrl from "@api/requestUrl";
+// components
+import SelectComponent from "@c/select";
+// antd
+import { Form, Input, Button, InputNumber, Radio, message } from "antd";
 
 class FormCom extends Component {
   constructor(props) {
@@ -40,7 +41,7 @@ class FormCom extends Component {
       this.refs.form.setFieldsValue(this.state.setFieldValue);
     }
   }
-
+  // 规则
   rules = (item) => {
     //   state
     const { mesPreix } = this.state;
@@ -55,6 +56,13 @@ class FormCom extends Component {
       rules = rules.concat(item.rules);
     }
     return rules;
+  };
+  // 规则
+  validatorSelect = (rule, value) => {
+    if (value || value[rule.field]) {
+      return Promise.resolve();
+    }
+    return Promise.reject("选项不能为空!");
   };
 
   /** input */
@@ -100,18 +108,34 @@ class FormCom extends Component {
         label={item.label}
         name={item.name}
         key={item.name}
-        rules={rules}
+        rules={[...rules, { validator: this.validatorSelect }]}
       >
-        <Select style={item.style} placeholder={item.placeholder}>
-          {item.options &&
-            item.options.map((elem) => {
-              return (
-                <Option value={elem.value} key={elem.value}>
-                  {elem.label}
-                </Option>
-              );
-            })}
-        </Select>
+        <SelectComponent
+          style={item.style}
+          placeholder={item.placeholder}
+          url={item.url}
+          props={item.props}
+          name={item.name}
+          initValue={this.props.formConfig.setFieldValue}
+        />
+      </Form.Item>
+    );
+  };
+
+  /** slotElem */
+  slotElem = (item) => {
+    const rules = this.rules(item);
+    console.log("item", item);
+    return (
+      <Form.Item
+        label={item.label}
+        key={item.name}
+        name={item.name}
+        rules={[...rules]}
+      >
+        {this.props.children && Array.isArray(this.props.children)
+          ? this.props.children.filter((elm) => item.slotName === elm.ref)
+          : this.props.children}
       </Form.Item>
     );
   };
@@ -150,7 +174,7 @@ class FormCom extends Component {
 
     // 循环处理
     const formList = [];
-    formItem.map((item) => {
+    formItem.forEach((item) => {
       if (item.type === "Input") {
         formList.push(this.inputElem(item));
       }
@@ -163,26 +187,49 @@ class FormCom extends Component {
       if (item.type === "Radio") {
         formList.push(this.radioElem(item));
       }
-      return item;
+      if (item.type === "Slot") {
+        formList.push(this.slotElem(item));
+      }
     });
     return formList;
   };
-
+  formatData = (value) => {
+    // 请求数据
+    const requestData = JSON.parse(JSON.stringify(value));
+    // 需要格式化 JOSN 对象的 key
+    const { formatFormKey, editKey, setFieldValue } = this.props.formConfig;
+    const keyValue = requestData[formatFormKey];
+    // 如果是 JSON 对象
+    if (Object.prototype.toString.call(keyValue) === "[object Object]") {
+      requestData[formatFormKey] = keyValue[formatFormKey];
+    }
+    // 判断是否存在“编辑”状态指定的key
+    if (editKey) {
+      requestData[editKey] = setFieldValue[editKey];
+    }
+    return requestData;
+  };
   /**
    * 提交表单
    * 1.添加
    * 2.修改
    */
   onSubmit = (values) => {
+    console.log(values);
     this.setState({
       loading: true,
     });
-    // // 确定按钮执行添加和编辑
-    // this.state.id ? this.onHandlerEdit(values) : this.onHandlerAdd(values);
-    // this.props.onSubmit(values);
+    if (this.props.submit) {
+      this.props.submit(values);
+      return false;
+    }
+    /**
+     * 参数为 JSON 对象时进行处理
+     */
+    const paramsData = this.formatData(values);
     const data = {
       url: requestUrl[this.props.formConfig.url],
-      data: values,
+      data: paramsData,
     };
     requestData(data)
       .then((response) => {

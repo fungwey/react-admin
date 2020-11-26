@@ -9,7 +9,7 @@ const Components = [];
 // 建立上下文件关系
 const files = require.context("../../views/", true, /\.js$/);
 // 循环文件
-files.keys().map((key) => {
+files.keys().forEach((key) => {
   // 过滤 index login
   if (key.includes("./index/") || key.includes("./login/")) return false;
   //   分割字符串
@@ -22,7 +22,6 @@ files.keys().map((key) => {
     path: path,
     component: component,
   });
-  return true;
 });
 
 export default Components;

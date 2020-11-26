@@ -1,13 +1,19 @@
 import React, { Component, Fragment } from "react";
 
 // antd
-import { message } from "antd";
+import { message, Select } from "antd";
 
 // api
-import { Detail, DepartmentEdit } from "@api/department";
+import { Detail, JobEdit } from "@api/job";
+//  API
+import { requestData } from "@api/common";
+// url
+import requestUrl from "@api/requestUrl";
 
 // 组件
 import FormCom from "@c/form/index";
+
+const { Option } = Select;
 
 class Add extends Component {
   constructor() {
@@ -15,10 +21,13 @@ class Add extends Component {
     this.state = {
       loading: false,
       id: "",
+      select: [],
       formConfig: {
         url: "jobAdd",
-        initValue: { status: false, number: 1 },
+        initValue: { status: false },
         setFieldValue: {},
+        editKey: "",
+        formatFormKey: "parentId",
       },
       formLayout: {
         labelCol: {
@@ -29,10 +38,26 @@ class Add extends Component {
         },
       },
       formItem: [
+        // {
+        //   type: "Select",
+        //   label: "部门名称",
+        //   name: "parentId",
+        //   required: true,
+        //   placeholder: "请输入选择部门",
+        //   message: `部门不能为空啊啊啊!`,
+        //   url: "getDepartmentList",
+        //   props: {
+        //     value: "id",
+        //     label: "name",
+        //   },
+        //   style: {
+        //     width: "150px",
+        //   },
+        // },
         {
           type: "Input",
           label: "职位名称",
-          name: "name",
+          name: "jobName",
           required: true,
           message: `职位名称不能为空啊啊啊!`,
           placeholder: "请输入职位名称",
@@ -41,38 +66,18 @@ class Add extends Component {
           },
         },
         {
-          type: "InputNumber",
-          label: "人员数量",
-          name: "number",
+          type: "Slot",
+          label: "部门名称",
+          name: "parentId",
           required: true,
-          message: `人员数量不能为空!`,
-          placeholder: "请输入人员数量",
+          slotName: "department",
+          placeholder: "请输入选择部门",
+          message: `部门不能为空啊啊啊!`,
+          url: "getDepartmentList",
           style: {
             width: "150px",
           },
-          min: 1,
-          max: 100,
         },
-        // {
-        //   type: "Select",
-        //   label: "选择职位",
-        //   name: "numbera",
-        //   required: true,
-        //   placeholder: "请输入选择职位",
-        //   options: [
-        //     {
-        //       label: "研发部",
-        //       value: "a",
-        //     },
-        //     {
-        //       label: "技术部",
-        //       value: "b",
-        //     },
-        //   ],
-        //   style: {
-        //     width: "150px",
-        //   },
-        // },
         {
           type: "Radio",
           label: "禁启用",
@@ -91,7 +96,7 @@ class Add extends Component {
         },
         {
           type: "Input",
-          label: "介绍",
+          label: "描述",
           name: "content",
           style: {
             width: "300px",
@@ -113,6 +118,7 @@ class Add extends Component {
 
   componentDidMount() {
     this.getDetailed();
+    this.getSelectList();
   }
 
   getDetailed = () => {
@@ -124,17 +130,42 @@ class Add extends Component {
       this.setState({
         formConfig: {
           ...this.state.formConfig,
+          editKey: "jobId",
+          url: "jobEdit",
           setFieldValue: response.data.data,
         },
       });
     });
   };
 
+  getSelectList = () => {
+    const url = "getDepartmentList";
+    const data = {
+      url: requestUrl[url],
+    };
+    // 不存在url 停止调用接口
+    if (!data.url) {
+      return false;
+    }
+    // 接口
+    requestData(data)
+      .then((res) => {
+        this.setState({
+          select: res.data.data.data,
+        });
+      })
+      .finally(() => {
+        this.setState({
+          loadingTable: false,
+        });
+      });
+  };
+
   /** 编辑信息 */
   onHandlerEdit = (values) => {
     const requestData = values;
     requestData.id = this.state.id;
-    DepartmentEdit(requestData)
+    JobEdit(requestData)
       .then((response) => {
         message.info(response.data.message, 1);
       })
@@ -150,6 +181,7 @@ class Add extends Component {
   };
 
   render() {
+    const { select } = this.state;
     return (
       <Fragment>
         <FormCom
@@ -157,7 +189,18 @@ class Add extends Component {
           formItem={this.state.formItem}
           formLayout={this.state.formLayout}
           formConfig={this.state.formConfig}
-        />
+        >
+          <Select ref="department" onChange={this.onChange}>
+            {select &&
+              select.map((elem) => {
+                return (
+                  <Option value={elem.id} key={elem.id}>
+                    {elem.name}
+                  </Option>
+                );
+              })}
+          </Select>
+        </FormCom>
       </Fragment>
     );
   }
